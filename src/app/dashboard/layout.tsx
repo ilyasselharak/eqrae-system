@@ -126,6 +126,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     },
     {
       key: '8',
+      icon: <TeamOutlined />,
+      label: 'إنشاء مستخدمين',
+      path: '/create-register-accounts',
+    },
+    {
+      key: '9',
       icon: <SettingOutlined />,
       label: 'الاعدادات',
       path: '/dashboard/settings',
