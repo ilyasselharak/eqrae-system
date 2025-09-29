@@ -12,7 +12,6 @@ interface Subject {
   name: string;
   code: string;
   description: string;
-  teacher: string;
   grade: string;
   price: number;
   duration: string;
@@ -27,7 +26,6 @@ interface SubjectFormData {
   name: string;
   code: string;
   description: string;
-  teacher: string;
   grade: string;
   price: number;
   duration: string;
@@ -38,7 +36,7 @@ export default function SubjectsPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [teachers, setTeachers] = useState<{_id: string, name: string}[]>([]);
+  const [levels, setLevels] = useState<{_id: string, name: string, order: number}[]>([]);
   const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
 
@@ -183,13 +181,13 @@ export default function SubjectsPage() {
     }
   };
 
-  // Fetch teachers data
-  const fetchTeachers = async () => {
+  // Fetch levels data
+  const fetchLevels = async () => {
     try {
       const token = localStorage.getItem('user-token');
       if (!token) return;
 
-      const response = await fetch('/api/teachers', {
+      const response = await fetch('/api/levels', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -198,19 +196,20 @@ export default function SubjectsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setTeachers(data.teachers || []);
+        const sortedLevels = (data.levels || []).sort((a: { order: number }, b: { order: number }) => a.order - b.order);
+        setLevels(sortedLevels);
       }
     } catch (error) {
-      console.error('Error fetching teachers:', error);
+      console.error('Error fetching levels:', error);
     }
   };
 
-  // Load subjects and teachers on component mount
+  // Load subjects and levels on component mount
   useEffect(() => {
     const loadAllData = async () => {
       await Promise.all([
         fetchSubjects(),
-        fetchTeachers()
+        fetchLevels()
       ]);
     };
     loadAllData();
@@ -244,11 +243,6 @@ export default function SubjectsPage() {
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
-    },
-    {
-      title: 'الأستاذ',
-      dataIndex: 'teacher',
-      key: 'teacher',
     },
     {
       title: 'الصف',
@@ -366,7 +360,10 @@ export default function SubjectsPage() {
         <Space>
           <Button 
             icon={<SearchOutlined />}
-            onClick={fetchSubjects}
+            onClick={() => {
+              fetchSubjects();
+              fetchLevels();
+            }}
             loading={loading}
           >
             تحديث البيانات
@@ -398,9 +395,11 @@ export default function SubjectsPage() {
               size="large"
               allowClear
             >
-              <Select.Option value="grade1">الصف الأول الثانوي</Select.Option>
-              <Select.Option value="grade2">الصف الثاني الثانوي</Select.Option>
-              <Select.Option value="grade3">الصف الثالث الثانوي</Select.Option>
+              {levels.map(level => (
+                <Select.Option key={level._id} value={level.name}>
+                  {level.name}
+                </Select.Option>
+              ))}
             </Select>
           </Col>
           <Col xs={24} sm={12} md={8}>
@@ -479,36 +478,24 @@ export default function SubjectsPage() {
             />
           </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="teacher"
-                label="الأستاذ"
-                rules={[{ required: true, message: 'يرجى اختيار الأستاذ' }]}
-              >
-                <Select placeholder="اختر الأستاذ" showSearch optionFilterProp="children">
-                  {teachers.map(teacher => (
-                    <Select.Option key={teacher._id} value={teacher.name}>
-                      {teacher.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="grade"
-                label="الصف"
-                rules={[{ required: true, message: 'يرجى اختيار الصف' }]}
-              >
-                <Select placeholder="اختر الصف">
-                  <Select.Option value="الصف الأول الثانوي">الصف الأول الثانوي</Select.Option>
-                  <Select.Option value="الصف الثاني الثانوي">الصف الثاني الثانوي</Select.Option>
-                  <Select.Option value="الصف الثالث الثانوي">الصف الثالث الثانوي</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+          <Form.Item
+            name="grade"
+            label="الصف"
+            rules={[{ required: true, message: 'يرجى اختيار الصف' }]}
+          >
+            <Select
+              placeholder="اختر الصف"
+              showSearch
+              optionFilterProp="children"
+              notFoundContent={levels.length === 0 ? "لا توجد مستويات. قم بإنشاء مستويات أولاً." : "لا توجد بيانات"}
+            >
+              {levels.map(level => (
+                <Select.Option key={level._id} value={level.name}>
+                  {level.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
 
           <Row gutter={16}>
             <Col span={8}>
