@@ -13,7 +13,7 @@ export interface User {
   updatedAt?: Date;
 }
 
-export async function createUser(username: string, password: string, email?: string, role: 'admin' | 'user' = 'admin'): Promise<User> {
+export async function createUser(username: string, email: string, password: string, role: 'admin' | 'user' = 'user'): Promise<User> {
   const db = await getDatabase();
   const users = db.collection('users');
   
@@ -28,8 +28,8 @@ export async function createUser(username: string, password: string, email?: str
   
   const userDoc = {
     username,
-    password: hashedPassword,
     email,
+    password: hashedPassword,
     role,
     isActive: true,
     createdAt: new Date(),

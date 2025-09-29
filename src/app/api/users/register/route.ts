@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createUser } from '@/lib/auth';
-import { verifyRequestToken } from '@/lib/auth-utils';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const { payload, body } = await verifyRequestToken(request);
-    if (!payload) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    if (payload.role !== 'admin') {
-      return NextResponse.json({ error: 'Only admins can create users' }, { status: 403 });
-    }
-
+    // Get the request body directly without authentication check
+    const body = await request.json();
     const { username, email, password, role = 'user' } = body;
 
     // Validate required fields

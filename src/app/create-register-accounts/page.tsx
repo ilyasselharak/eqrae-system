@@ -27,12 +27,7 @@ export default function CreateRegisterAccountsPage() {
       // Validate password confirmation
       if (values.password !== values.confirmPassword) {
         message.error('كلمات المرور غير متطابقة');
-        return;
-      }
-
-      const token = localStorage.getItem('user-token');
-      if (!token) {
-        message.error('No authentication token found');
+        setLoading(false);
         return;
       }
 
@@ -42,7 +37,6 @@ export default function CreateRegisterAccountsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          token,
           username: values.username,
           email: values.email,
           password: values.password,
