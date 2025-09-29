@@ -1,103 +1,151 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Form, Input, Button, Card, Typography, message, Spin } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useUser } from '@/contexts/UserContext';
+import Link from 'next/link';
+
+const { Title, Text } = Typography;
+
+interface LoginForm {
+  username: string;
+  password: string;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [loginForm] = Form.useForm<LoginForm>();
+  const [loading, setLoading] = useState(false);
+  const { user, loading: authLoading, login } = useUser();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && !authLoading) {
+      window.location.href = '/dashboard';
+    }
+  }, [user, authLoading]);
+
+  const handleLogin = async (values: LoginForm) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store user data and token in localStorage
+        login(data.user, data.token);
+        // Redirect to dashboard
+        window.location.href = '/dashboard';
+      } else {
+        message.error(data.error || 'فشل في تسجيل الدخول');
+      }
+    } catch (error) {
+      message.error('حدث خطأ أثناء تسجيل الدخول');
+      console.error('Login error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show loading spinner while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Spin size="large" />
+          <p className="mt-4 text-gray-600">جاري التحقق من حالة تسجيل الدخول...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <Title level={2} className="text-center">
+            نظام الدراسة
+          </Title>
+          <Text type="secondary" className="text-center block">
+            مرحباً! يرجى تسجيل الدخول للمتابعة أو إنشاء حساب جديد.
+          </Text>
+        </div>
+
+        <Card className="shadow-lg">
+          <Form
+            form={loginForm}
+            name="login"
+            onFinish={handleLogin}
+            layout="vertical"
+            size="large"
+          >
+            <Form.Item
+              name="username"
+              label="اسم المستخدم"
+              rules={[{ required: true, message: 'يرجى إدخال اسم المستخدم!' }]}
+            >
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="أدخل اسم المستخدم"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label="كلمة المرور"
+              rules={[{ required: true, message: 'يرجى إدخال كلمة المرور!' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="أدخل كلمة المرور"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                block
+                size="large"
+              >
+                تسجيل الدخول
+              </Button>
+            </Form.Item>
+
+            <Form.Item>
+              <Link href="/register">
+                <Button
+                  type="default"
+                  block
+                  size="large"
+                >
+                  إنشاء حساب جديد
+                </Button>
+              </Link>
+            </Form.Item>
+          </Form>
+
+          <div className="text-center mt-4">
+            <Text type="secondary">
+              ليس لديك حساب؟{' '}
+              <Link 
+                href="/register" 
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                إنشاء حساب جديد
+              </Link>
+            </Text>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
