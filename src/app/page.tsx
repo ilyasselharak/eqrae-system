@@ -132,18 +132,6 @@ export default function Home() {
               </Link>
             </Form.Item>
           </Form>
-
-          <div className="text-center mt-4">
-            <Text type="secondary">
-              ليس لديك حساب؟{' '}
-              <Link 
-                href="/register" 
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                إنشاء حساب جديد
-              </Link>
-            </Text>
-          </div>
         </Card>
       </div>
     </div>
