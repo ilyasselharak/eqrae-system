@@ -120,17 +120,7 @@ export default function Home() {
               </Button>
             </Form.Item>
 
-            <Form.Item>
-              <Link href="/register">
-                <Button
-                  type="default"
-                  block
-                  size="large"
-                >
-                  إنشاء حساب جديد
-                </Button>
-              </Link>
-            </Form.Item>
+            
           </Form>
         </Card>
       </div>
